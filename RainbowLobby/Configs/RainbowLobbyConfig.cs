@@ -2,5 +2,5 @@
 
 public class RainbowLobbyConfig
 {
-    public string Text = "\n\nMy Cool\n<rainbow>Rainbow Server Name</rainbow>";
+    public string Text { get; set; } = "\n\nMy Cool\n<rainbow>Rainbow Server Name</rainbow>";
 }

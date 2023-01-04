@@ -11,7 +11,7 @@ namespace RainbowLobby;
 
 public class EntryPoint
 {
-    public const string RainbowLobbyVersion = "1.0.0.0";
+    public const string RainbowLobbyVersion = "1.0.0.1";
 
     [PluginConfig]
     public static RainbowLobbyConfig Config;
