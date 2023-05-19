@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using PluginAPI.Core;
 using PluginAPI.Core.Attributes;
@@ -11,7 +12,7 @@ namespace RainbowLobby;
 
 public class EntryPoint
 {
-    public const string RainbowLobbyVersion = "1.0.0.1";
+    public const string RainbowLobbyVersion = "1.0.0.2";
 
     [PluginConfig]
     public static RainbowLobbyConfig Config;
@@ -21,52 +22,72 @@ public class EntryPoint
     {
         Log.Raw($"Loading RainbowLobby {RainbowLobbyVersion} by Jesus-QC");
         
+        Task.Run(RunRainbowLobby);
         EventManager.RegisterEvents(this, this);
     }
+
+    private bool _displayHint;
     
     [PluginEvent(ServerEventType.WaitingForPlayers)]
     private void OnWaitingForPlayers()
     {
-        Task.Run(RunRainbowLobby);
+        _displayHint = true;
     }
 
-    private static async Task RunRainbowLobby()
+    [PluginEvent(ServerEventType.RoundStart)]
+    private void OnStartedRound()
+    {
+        _displayHint = false;
+        foreach (Player player in Player.GetPlayers())
+        {
+            player.ReceiveHint(string.Empty);
+        }
+    }
+    
+    private async Task RunRainbowLobby()
     {
         int r = 255, g = 0, b = 0;
         
         Config.Text = Config.Text.Replace("</rainbow>", "</color>");
         
-        while (!Round.IsRoundStarted)
+        while (true)
         {
-            string hex = $"{r:X2}{g:X2}{b:X2}"; // X = Hex, 2 = 2 characters
-            string text = Config.Text.Replace("<rainbow>", $"<color=#{hex}>");
-            
-            foreach (Player player in Player.GetPlayers())
-            {
-                player.ReceiveHint(text);
-            }
+            Log.Info(_displayHint.ToString());
+            if (_displayHint)
+            { 
+                string hex = $"{r:X2}{g:X2}{b:X2}"; // X = Hex, 2 = 2 characters
+                string text = Config.Text.Replace("<rainbow>", $"<color=#{hex}>");
 
-            if (r > 0 && b == 0)
-            {
-                r += 3;
-                g += 3;
-            }
+                foreach (Player player in Player.GetPlayers())
+                {
+                    if (!player.ReferenceHub.serverRoles.IsVerified)
+                        continue;
 
-            if (g > 0 && r == 0)
-            {
-                g += 3;
-                b += 3;
-            }
+                    player.ReceiveHint(text);
+                }
 
-            if (b > 0 && g == 0)
-            {
-                b += 3;
-                r += 3;
-            }
+                if (r > 0 && b == 0)
+                {
+                    r += 3;
+                    g += 3;
+                }
 
-            r = Mathf.Clamp(r, 0, 255);
-            g = Mathf.Clamp(g, 0, 255);
-            b = Mathf.Clamp(b, 0, 255);
+                if (g > 0 && r == 0)
+                {
+                    g += 3;
+                    b += 3;
+                }
+
+                if (b > 0 && g == 0)
+                {
+                    b += 3;
+                    r += 3;
+                }
+
+                r = Mathf.Clamp(r, 0, 255);
+                g = Mathf.Clamp(g, 0, 255);
+                b = Mathf.Clamp(b, 0, 255);
+            }
             
             await Task.Delay(500);
         }
