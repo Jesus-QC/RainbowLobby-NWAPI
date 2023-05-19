@@ -52,7 +52,6 @@ public class EntryPoint
         
         while (true)
         {
-            Log.Info(_displayHint.ToString());
             if (_displayHint)
             { 
                 string hex = $"{r:X2}{g:X2}{b:X2}"; // X = Hex, 2 = 2 characters
